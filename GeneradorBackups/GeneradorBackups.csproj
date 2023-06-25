@@ -7,10 +7,16 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <PlatformTarget>x64</PlatformTarget>
-    <ApplicationIcon>hdd_win_16634.ico</ApplicationIcon>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>InstaladorGeneradorBackups</Title>
-    <Version>$(Version)</Version>
+    <Version>$(VersionPrefix)</Version>
+    <Description>Programa que genera copias de seguridad.</Description>
+    <Copyright>© 2023 Paco Arques Soria</Copyright>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <IncludeSymbols>True</IncludeSymbols>
+    <Authors>$(AssemblyName)</Authors>
+    <ApplicationIcon>hdd_win_16634.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
   </ItemGroup>
 
   <ItemGroup>

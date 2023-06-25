@@ -1210,7 +1210,7 @@ namespace GeneradorBackups
             SqlDataReader puntero = baseDatos.obtenerPunteroTablaDatos(generadorSelect.sentenciaSQL, out resOperacion, out mError);
             if (resOperacion)
             {
-               Dictionary<string, string?> datoFila = null;
+               Dictionary<string, string?>? datoFila = null;
                if (puntero.Read())
                {
                   string? identificador = (puntero[sDatosTablaDatosCS.colIdentificador] != null) ? puntero[sDatosTablaDatosCS.colIdentificador].ToString() : null;

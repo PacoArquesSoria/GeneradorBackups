@@ -100,93 +100,108 @@ namespace GeneradorBackups
       // función que inicializa el datagrid con los datos de la copia de seguridad. Devuelve un booleano indicando si la operación se ha podido efectuar
       public bool inicializarDatagrid()
       {
-         datosCS = gestorBD.obtenerDatosBasicosCopiaSeguridad(datosFiltro);
-         if (gestorBD.resultado)
+         if (gestorBD != null)
          {
-            dgvDatosCS.Rows.Clear();
-            if (datosCS != null && datosCS.Count > 0)
+            datosCS = gestorBD.obtenerDatosBasicosCopiaSeguridad(datosFiltro);
+            if (gestorBD.resultado)
             {
-               foreach (Dictionary<string, string?> datoFila in datosCS)
+               dgvDatosCS.Rows.Clear();
+               if (datosCS != null && datosCS.Count > 0)
                {
-                  string? identificador = datoFila[sDatosTablaDatosCS.colIdentificador];
-                  string? nombre = datoFila[sDatosTablaDatosCS.colNombre];
-                  string? descripcion = datoFila[sDatosTablaDatosCS.colDescripcion];
-                  bool seleccionada = false;
-                  if (!string.IsNullOrEmpty(datoFila[sDatosTablaDatosCS.colSeleccionada]))
+                  foreach (Dictionary<string, string?> datoFila in datosCS)
                   {
-                     switch (datoFila[sDatosTablaDatosCS.colSeleccionada])
+                     string? identificador = datoFila[sDatosTablaDatosCS.colIdentificador];
+                     string? nombre = datoFila[sDatosTablaDatosCS.colNombre];
+                     string? descripcion = datoFila[sDatosTablaDatosCS.colDescripcion];
+                     bool seleccionada = false;
+                     if (!string.IsNullOrEmpty(datoFila[sDatosTablaDatosCS.colSeleccionada]))
                      {
-                        case "False":
-                           seleccionada = false;
-                           break;
-                        case "True":
-                           seleccionada = true;
-                           break;
-                        default:
-                           MessageBox.Show("Error al convertir la cadena \"" + datoFila[sDatosTablaDatosCS.colSeleccionada]+"\" a booleano.",
-                                           "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                           return false;
+                        switch (datoFila[sDatosTablaDatosCS.colSeleccionada])
+                        {
+                           case "False":
+                              seleccionada = false;
+                              break;
+                           case "True":
+                              seleccionada = true;
+                              break;
+                           default:
+                              MessageBox.Show("Error al convertir la cadena \"" + datoFila[sDatosTablaDatosCS.colSeleccionada] + "\" a booleano.",
+                                              "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                              return false;
+                        }
+                     }
+                     if (!string.IsNullOrEmpty(identificador) && !string.IsNullOrEmpty(nombre))
+                     {
+                        bloquearEdicionCeldaSeleccionada = true;
+                        dgvDatosCS.Rows.Add(new object[] { identificador, nombre, (descripcion == null) ? "" : descripcion, seleccionada });
+                        bloquearEdicionCeldaSeleccionada = false;
                      }
                   }
-                  if (!string.IsNullOrEmpty(identificador) && !string.IsNullOrEmpty(nombre))
-                  {
-                     bloquearEdicionCeldaSeleccionada = true;
-                     dgvDatosCS.Rows.Add(new object[] { identificador, nombre, (descripcion == null) ? "" : descripcion, seleccionada });
-                     bloquearEdicionCeldaSeleccionada = false;
-                  }
                }
+               dgvDatosCS.Refresh();
+               return true;
             }
-            dgvDatosCS.Refresh();
-            return true;
+            else
+            {
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS BÁSICOS DE LAS COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return false;
+            }
          }
          else
-         {
-            MessageBox.Show(gestorBD.mensajeError,"ERROR AL OBTENER LOS DATOS BÁSICOS DE LAS COPIAS DE SEGURIDAD",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
             return false;
-         }
       }
 
       // función que inicializa la entrada del valor al seleccionar el tipo de campo. Devuelve un booleano indicando si la operación se ha podido efectuar correctamente o
       // no.
       private bool inicializarEntradaValor()
       {
-         int tamEntradaValor = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, datosFiltro.campo);
-         if (gestorBD.resultado)
+         if (gestorBD != null)
          {
-            datosFiltro.valor = "*";
-            textBoxValor.MaxLength = tamEntradaValor;
-            textBoxValor.Text = "*";
-            return true;
+            int tamEntradaValor = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, datosFiltro.campo);
+            if (gestorBD.resultado)
+            {
+               datosFiltro.valor = "*";
+               textBoxValor.MaxLength = tamEntradaValor;
+               textBoxValor.Text = "*";
+               return true;
+            }
+            else
+            {
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return false;
+            }
          }
          else
-         {
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             return false;
-         }
       }
 
       // función que obtiene el tamaño del identificador, del nombre y de la descripción de la tabla de la copia de seguridad.
       private (int tamIdentificador, int tamNombre, int tamDescripcion) obtenerTamannhosColumnasDatagrid()
       {
-         int tamIdentificador = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colIdentificador);
-         if (!gestorBD.resultado)
+         if (gestorBD != null)
          {
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA IDENTIFICADOR", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return (-1, -1, -1);
+            int tamIdentificador = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colIdentificador);
+            if (!gestorBD.resultado)
+            {
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA IDENTIFICADOR", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return (-1, -1, -1);
+            }
+            int tamNombre = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colNombre);
+            if (!gestorBD.resultado)
+            {
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA NOMBRE", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return (-1, -1, -1);
+            }
+            int tamDescripcion = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colDescripcion);
+            if (!gestorBD.resultado)
+            {
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DESCRIPCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return (-1, -1, -1);
+            }
+            return (tamIdentificador, tamNombre, tamDescripcion);
          }
-         int tamNombre = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colNombre);
-         if (!gestorBD.resultado)
-         {
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA NOMBRE", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+         else
             return (-1, -1, -1);
-         }
-         int tamDescripcion = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaDatosCS.nombreTabla, sDatosTablaDatosCS.colDescripcion);
-         if (!gestorBD.resultado)
-         {
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DESCRIPCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return (-1, -1, -1);
-         }
-         return (tamIdentificador, tamNombre, tamDescripcion);
       }
 
       // función que inicializa el tamaño de las columnas del datagrid. Devuelve true si la operación se ha efectuado correctamente y false, en caso contrario
@@ -254,54 +269,59 @@ namespace GeneradorBackups
       // función que obtiene los datos de la copia de seguridad seleccionada
       private bool obtenerDatosCSSeleccionada(out string? identificador, out string? nombre, out string? descripcion, out string? destino, out bool seleccionada)
       {
+         seleccionada = false;
          identificador = null;
          nombre = null;
          descripcion = null;
          destino = null;
-         seleccionada = false;
-         // en primer lugar, obtendremos el identificador de la columna identificador de la fila seleccionada
-         string? idCS = (dgvDatosCS.SelectedRows[0].Cells[kColIdentificador].Value != null) ? dgvDatosCS.SelectedRows[0].Cells[kColIdentificador].Value.ToString() : null;
-         if (!string.IsNullOrEmpty(idCS))
+         if (gestorBD != null)
          {
-            Dictionary<string, string?>? datosCS = gestorBD.obtenerDatosCopiaSeguridad(idCS);
-            if (gestorBD.resultado)
+            // en primer lugar, obtendremos el identificador de la columna identificador de la fila seleccionada
+            string? idCS = (dgvDatosCS.SelectedRows[0].Cells[kColIdentificador].Value != null) ? dgvDatosCS.SelectedRows[0].Cells[kColIdentificador].Value.ToString() : null;
+            if (!string.IsNullOrEmpty(idCS))
             {
-               if (datosCS != null && datosCS.Count > 0)
+               Dictionary<string, string?>? datosCS = gestorBD.obtenerDatosCopiaSeguridad(idCS);
+               if (gestorBD.resultado)
                {
-                  identificador = datosCS[sDatosTablaDatosCS.colIdentificador];
-                  nombre = datosCS[sDatosTablaDatosCS.colNombre];
-                  descripcion = datosCS[sDatosTablaDatosCS.colDescripcion];
-                  destino = datosCS[sDatosTablaDatosCS.colDestino];
-                  switch (datosCS[sDatosTablaDatosCS.colSeleccionada])
+                  if (datosCS != null && datosCS.Count > 0)
                   {
-                     case "False":
-                        seleccionada = false;
-                        break;
-                     case "True":
-                        seleccionada = true;
-                        break;
-                     default:                                                                   // error gordo
-                        MessageBox.Show("No se ha podido convertir la cadena \"" + datosCS[sDatosTablaDatosCS.colSeleccionada] + "\" a booleano.",
-                                        "ERROR DE CONVERSIÓN DE TIPOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        return false;
+                     identificador = datosCS[sDatosTablaDatosCS.colIdentificador];
+                     nombre = datosCS[sDatosTablaDatosCS.colNombre];
+                     descripcion = datosCS[sDatosTablaDatosCS.colDescripcion];
+                     destino = datosCS[sDatosTablaDatosCS.colDestino];
+                     switch (datosCS[sDatosTablaDatosCS.colSeleccionada])
+                     {
+                        case "False":
+                           seleccionada = false;
+                           break;
+                        case "True":
+                           seleccionada = true;
+                           break;
+                        default:                                                                   // error gordo
+                           MessageBox.Show("No se ha podido convertir la cadena \"" + datosCS[sDatosTablaDatosCS.colSeleccionada] + "\" a booleano.",
+                                           "ERROR DE CONVERSIÓN DE TIPOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           return false;
+                     }
+                     return true;
                   }
-                  return true;
+                  else
+                     return true;
                }
                else
-                  return true;
+               {
+                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                  return false;
+               }
             }
             else
             {
-               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS DE LA COPIA DE SEGURIDAD",MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               MessageBox.Show("No se ha podido obtener el identificador de la columna identificador de la fila seleccionada.", "ERROR INTERNO DE LA APLICACIÓN",
+                               MessageBoxButtons.OK, MessageBoxIcon.Error);
                return false;
             }
          }
          else
-         {
-            MessageBox.Show("No se ha podido obtener el identificador de la columna identificador de la fila seleccionada.", "ERROR INTERNO DE LA APLICACIÓN",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
-         }
       }
 
       // función que nos dice en qué modo está el botón "Activar/Desactivar bit de selección"
@@ -383,31 +403,37 @@ namespace GeneradorBackups
       // función que obtiene los datos de la tabla Configuración para ejecutar las copias de seguridad seleccionadas en el pertinente Datagrid.
       private (string? ejecutable, string? opciones, string? opcionListaFicheros, bool errorLectura) obtenerEjecutableCS()
       {
-         Dictionary<string, string?>? datosEjecutable = gestorBD.obtenerDatosConfiguracionProgramaCopiaSeguridad();
-         if (gestorBD.resultado)
+         if (gestorBD != null)
          {
-            try
+            Dictionary<string, string?>? datosEjecutable = gestorBD.obtenerDatosConfiguracionProgramaCopiaSeguridad();
+            if (gestorBD.resultado)
             {
-               if (datosEjecutable != null && datosEjecutable.Count > 0)
+               try
                {
-                  string? ejecutable = datosEjecutable[sDatosTablaConfiguracion.colEjecutable];
-                  string? opciones = datosEjecutable[sDatosTablaConfiguracion.colOpciones];
-                  string? opcionListaFicheros = datosEjecutable[sDatosTablaConfiguracion.colOpcionListaFicheros];
-                  return (ejecutable, opciones, opcionListaFicheros, false);
+                  if (datosEjecutable != null && datosEjecutable.Count > 0)
+                  {
+                     string? ejecutable = datosEjecutable[sDatosTablaConfiguracion.colEjecutable];
+                     string? opciones = datosEjecutable[sDatosTablaConfiguracion.colOpciones];
+                     string? opcionListaFicheros = datosEjecutable[sDatosTablaConfiguracion.colOpcionListaFicheros];
+                     return (ejecutable, opciones, opcionListaFicheros, false);
+                  }
+                  else
+                     return (null, null, null, false);
                }
-               else
-                  return (null, null, null, false);
-            } catch (ArgumentOutOfRangeException)
+               catch (ArgumentOutOfRangeException)
+               {
+                  MessageBox.Show("No se ha podido leer los datos del programa de copia de seguridad.", "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                  return (null, null, null, true);
+               }
+            }
+            else
             {
-               MessageBox.Show("No se ha podido leer los datos del programa de copia de seguridad.", "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Error);
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS DEL PROGRAMA DE COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Error);
                return (null, null, null, true);
             }
          }
          else
-         {
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS DEL PROGRAMA DE COPIA DE SEGURIDAD",MessageBoxButtons.OK, MessageBoxIcon.Error);
             return (null, null, null, true);
-         }
       }
 
       // función que nos dice si el ejecutable es del programa WinRAR o no. Como parámetro se le pasa el nombre del ejecutable. Devuelve un booleano indicándolo.
@@ -439,16 +465,17 @@ namespace GeneradorBackups
 
       // función que ejecuta la copia de seguridad. Como parámetros se le pasan: el nombre del ejecutable, las opciones, la opción de la lista de ficheros, el identificador
       // de la copia de seguridad, el nombre de la copia, el destino y el fichero con la lista de ficheros y directorios
-      private bool ejecutarCS(string ejecutable, string opciones, string? opcionListaFicheros, string idCS, string nombre, string destino, string ficheroListaFicheros)
+      private bool ejecutarCS(string ejecutable, string opciones, string? opcionListaFicheros, string? idCS, string? nombre, string? destino, string ficheroListaFicheros)
       {
+         if (gestorBD == null)
+            return false;
          try
          {
             // en primer lugar, añadiremos la extensión RAR si es preciso
-            string nombreFichero = generarNombreFicheroRar(nombre, ejecutable);
+            string nombreFichero = generarNombreFicheroRar((nombre==null) ? "":nombre, ejecutable);
             // en primer lugar, obtendremos el nombre absoluto del fichero de la copia de seguridad y el nombre absoluto del fichero temporal de la copia de seguridad
             string nombreAbsoluto = destino + "\\" + nombreFichero;
             string nombreTemporal = gestorBD.dirTemporal + "\\" + nombreFichero;
-            bool resultado;
             string mensajeError;
             // borra el archivo antiguo si lo hubiera
             if (ClassFileSystem.existeDirectorio(nombreAbsoluto))
@@ -477,63 +504,67 @@ namespace GeneradorBackups
       // función que ejecuta las copias de seguridad
       private void ejecutarCopiasSeguridad()
       {
-         List<Dictionary<string, string?>>? datosCS = gestorBD.obtenerDatosMinimosCopiasSeguridadSeleccionadas(datosFiltro);
-         if (gestorBD.resultado)
+         if (gestorBD != null)
          {
-            if (datosCS != null && datosCS.Count > 0)
+            List<Dictionary<string, string?>>? datosCS = gestorBD.obtenerDatosMinimosCopiasSeguridadSeleccionadas(datosFiltro);
+            if (gestorBD.resultado)
             {
-               string? ejecutable, opciones, opcionListaFicheros;
-               bool errorLectura;
-               (ejecutable, opciones, opcionListaFicheros, errorLectura) = obtenerEjecutableCS();
-               if (!errorLectura)
+               if (datosCS != null && datosCS.Count > 0)
                {
-                  if (string.IsNullOrEmpty(ejecutable) || string.IsNullOrEmpty(opciones))
+                  string? ejecutable, opciones, opcionListaFicheros;
+                  bool errorLectura;
+                  (ejecutable, opciones, opcionListaFicheros, errorLectura) = obtenerEjecutableCS();
+                  if (!errorLectura)
                   {
-                     string mError = "No se puede ejecutar la copia de seguridad porque:";
-                     if (string.IsNullOrEmpty(ejecutable))
-                        mError += "\r\nNo está definido el ejecutable que lo efectuará.";
-                     if (string.IsNullOrEmpty(opciones))
-                        mError += "\r\nNo están definidas la opciones del ejecutable";
-                     MessageBox.Show(mError, "EJECUCIÓN IMPOSIBLE DE LAS COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                     return;
-                  }
-                  foreach (Dictionary<string, string?> copiaSeguridad in datosCS)
-                  {
-                     // generamos el fichero con la lista de archivos y directorios cuya copia de seguridad queremos efectuar
-                     ClassGeneradorFicheroLista generadorFicheroLista = new ClassGeneradorFicheroLista(gestorBD, copiaSeguridad[sDatosTablaDatosCS.colIdentificador], datosFiltro);
-                     if (generadorFicheroLista.resultado)
+                     if (string.IsNullOrEmpty(ejecutable) || string.IsNullOrEmpty(opciones))
                      {
-                        if (!generadorFicheroLista.ficheroVacio)
+                        string mError = "No se puede ejecutar la copia de seguridad porque:";
+                        if (string.IsNullOrEmpty(ejecutable))
+                           mError += "\r\nNo está definido el ejecutable que lo efectuará.";
+                        if (string.IsNullOrEmpty(opciones))
+                           mError += "\r\nNo están definidas la opciones del ejecutable";
+                        MessageBox.Show(mError, "EJECUCIÓN IMPOSIBLE DE LAS COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        return;
+                     }
+                     foreach (Dictionary<string, string?> copiaSeguridad in datosCS)
+                     {
+                        // generamos el fichero con la lista de archivos y directorios cuya copia de seguridad queremos efectuar
+                        ClassGeneradorFicheroLista generadorFicheroLista = new ClassGeneradorFicheroLista(gestorBD, copiaSeguridad[sDatosTablaDatosCS.colIdentificador], datosFiltro);
+                        if (generadorFicheroLista.resultado)
                         {
-                           string? idCS = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colIdentificador]) ? copiaSeguridad[sDatosTablaDatosCS.colIdentificador] : "";
-                           string? nombre = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colNombre]) ? copiaSeguridad[sDatosTablaDatosCS.colNombre] : "";
-                           string? destino = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colDestino]) ? copiaSeguridad[sDatosTablaDatosCS.colDestino] : "";
-                           if (!ejecutarCS(ejecutable, opciones, opcionListaFicheros, idCS, nombre, destino, generadorFicheroLista.nombreAbsoluto))
+                           if (!generadorFicheroLista.ficheroVacio)
+                           {
+                              string? idCS = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colIdentificador]) ? copiaSeguridad[sDatosTablaDatosCS.colIdentificador] : null;
+                              string? nombre = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colNombre]) ? copiaSeguridad[sDatosTablaDatosCS.colNombre] : null;
+                              string? destino = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colDestino]) ? copiaSeguridad[sDatosTablaDatosCS.colDestino] : null;
+                              string ficheroListaFicheros = string.IsNullOrEmpty(generadorFicheroLista.nombreAbsoluto) ? "" : generadorFicheroLista.nombreAbsoluto;
+                              if (!ejecutarCS(ejecutable, opciones, opcionListaFicheros, idCS, nombre, destino, ficheroListaFicheros))
+                                 return;
+                           }
+                           else
+                              MessageBox.Show("Copia de seguridad sin ningún fichero a añadir.", "COPIA DE SEGURIDAD VACÍA", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                           string mError;
+                           if (!ClassFileSystem.rm(generadorFicheroLista.nombreAbsoluto, out mError))
+                           {
+                              MessageBox.Show(mError, "ERROR AL BORRAR FICHERO TEMPORAL", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                               return;
+                           }
                         }
                         else
-                           MessageBox.Show("Copia de seguridad sin ningún fichero a añadir.", "COPIA DE SEGURIDAD VACÍA", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        string mError;
-                        if (!ClassFileSystem.rm(generadorFicheroLista.nombreAbsoluto, out mError))
                         {
-                           MessageBox.Show(mError,"ERROR AL BORRAR FICHERO TEMPORAL",MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           MessageBox.Show(generadorFicheroLista.mensajeError, "ERROR AL GENERAR FICHERO CON LISTA DE FICHEROS Y DIRECTORIOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                            return;
                         }
                      }
-                     else
-                     {
-                        MessageBox.Show(generadorFicheroLista.mensajeError, "ERROR AL GENERAR FICHERO CON LISTA DE FICHEROS Y DIRECTORIOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        return;
-                     }
+                     MessageBox.Show("Las copias de seguridad se han efectuado correctamente.", "COPIAS DE SEGURIDAD OK", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                   }
-                  MessageBox.Show("Las copias de seguridad se han efectuado correctamente.", "COPIAS DE SEGURIDAD OK", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                }
+               else
+                  MessageBox.Show("No existe ninguna copia de seguridad seleccionada en la base de datos.", "FALTAN COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
             else
-               MessageBox.Show("No existe ninguna copia de seguridad seleccionada en la base de datos.", "FALTAN COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LA INFORMACIÓN DE LAS COPIAS DE SEGURIDAD SELECCIONADAS", MessageBoxButtons.OK, MessageBoxIcon.Information);
          }
-         else
-            MessageBox.Show(gestorBD.mensajeError,"ERROR AL OBTENER LA INFORMACIÓN DE LAS COPIAS DE SEGURIDAD SELECCIONADAS",MessageBoxButtons.OK,MessageBoxIcon.Information);
       }
 
       // función que maneja el temporizador para actualizar el datagrid con los datos actualizados
@@ -563,44 +594,54 @@ namespace GeneradorBackups
          if (sender is FormEditarAgregarCopiaSeguridad)
          {
             FormEditarAgregarCopiaSeguridad? ventana = sender as FormEditarAgregarCopiaSeguridad;
-            ventana.FormClosed -= manejadorCierreVentanaAgregarCopiaSeguridad;
-            // comprobamos si la operación ha sido cancelada o no
-            if (!ventana.operacionCancelada)
+            if (ventana != null && gestorBD != null)
             {
-               // operación no cancelada -> obtenemos la información que precisamos
-               string? identificador = ventana.identificador;
-               string? nombre = ventana.nombre;
-               string? destino = ventana.destino;
-               string? descripcion = ventana.descripcion;
-               ficherosCopiaSeguridad = ventana.ficheros;
-               // creamos la transacción para almacenarla
-               gestorBD.crearTransaccion();
-               if (gestorBD.resultado)
+               ventana.FormClosed -= manejadorCierreVentanaAgregarCopiaSeguridad;
+               // comprobamos si la operación ha sido cancelada o no
+               if (!ventana.operacionCancelada)
                {
-                  // se ha podido crear la transacción -> almacenaremos la información
-                  gestorBD.almacenarCopiaSeguridad(identificador, nombre, destino, descripcion);
+                  // operación no cancelada -> obtenemos la información que precisamos
+                  string? identificador = ventana.identificador;
+                  string? nombre = ventana.nombre;
+                  string? destino = ventana.destino;
+                  string? descripcion = ventana.descripcion;
+                  ficherosCopiaSeguridad = ventana.ficheros;
+                  // creamos la transacción para almacenarla
+                  gestorBD.crearTransaccion();
                   if (gestorBD.resultado)
                   {
-                     gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(identificador);
+                     // se ha podido crear la transacción -> almacenaremos la información
+                     gestorBD.almacenarCopiaSeguridad(identificador, nombre, destino, descripcion);
                      if (gestorBD.resultado)
                      {
-                        gestorBD.almacenarListaFicherosYDirectoriosSeleccionadosDeUnaCopiaDeSeguridad(identificador, ficherosCopiaSeguridad);
+                        gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(identificador);
                         if (gestorBD.resultado)
                         {
-                           gestorBD.aceptarTransaccion();
+                           gestorBD.almacenarListaFicherosYDirectoriosSeleccionadosDeUnaCopiaDeSeguridad(identificador, ficherosCopiaSeguridad);
                            if (gestorBD.resultado)
                            {
-                              System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
-                              temporizador.Interval = 1000;
-                              temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
-                              temporizador.Start();
+                              gestorBD.aceptarTransaccion();
+                              if (gestorBD.resultado)
+                              {
+                                 System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
+                                 temporizador.Interval = 1000;
+                                 temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
+                                 temporizador.Start();
+                              }
+                              else
+                                 MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                            }
                            else
-                              MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           {
+                              MessageBox.Show(gestorBD.mensajeError, "ERROR AL ALMACENAR LOS FICHEROS Y DIRECTORIOS SELECCIONADOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                              gestorBD.anularTransaccion();
+                              if (!gestorBD.resultado)
+                                 MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           }
                         }
                         else
                         {
-                           MessageBox.Show(gestorBD.mensajeError, "ERROR AL ALMACENAR LOS FICHEROS Y DIRECTORIOS SELECCIONADOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LOS FICHEROS Y DIRECTORIOS ANTIGUOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                            gestorBD.anularTransaccion();
                            if (!gestorBD.resultado)
                               MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -608,18 +649,11 @@ namespace GeneradorBackups
                      }
                      else
                      {
-                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LOS FICHEROS Y DIRECTORIOS ANTIGUOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR DE CREACIÓN DE COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         gestorBD.anularTransaccion();
                         if (!gestorBD.resultado)
                            MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                      }
-                  }
-                  else
-                  {
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR DE CREACIÓN DE COPIA DE SEGURIDAD",MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                     gestorBD.anularTransaccion();
-                     if (!gestorBD.resultado)
-                        MessageBox.Show(gestorBD.mensajeError,"ERROR AL ANULAR TRANSACCIÓN",MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
                   }
                }
             }
@@ -632,44 +666,54 @@ namespace GeneradorBackups
          if (sender is FormEditarAgregarCopiaSeguridad)
          {
             FormEditarAgregarCopiaSeguridad? ventana = sender as FormEditarAgregarCopiaSeguridad;
-            ventana.FormClosed -= manejadorCierreVentanaModificarCopiaSeguridad;
-            // comprobamos si la operación ha sido cancelada o no
-            if (!ventana.operacionCancelada)
+            if (ventana != null && gestorBD != null)
             {
-               // operación no cancelada -> obtenemos la información que precisamos
-               string? identificador = ventana.identificador;
-               string? nombre = ventana.nombre;
-               string? destino = ventana.destino;
-               string? descripcion = ventana.descripcion;
-               ficherosCopiaSeguridad = ventana.ficheros;
-               // creamos la transacción para almacenarla
-               gestorBD.crearTransaccion();
-               if (gestorBD.resultado)
+               ventana.FormClosed -= manejadorCierreVentanaModificarCopiaSeguridad;
+               // comprobamos si la operación ha sido cancelada o no
+               if (!ventana.operacionCancelada)
                {
-                  // se ha podido crear la transacción -> actualizaremos la información
-                  gestorBD.actualizarCopiaSeguridad(identificador, nombre, destino, descripcion);
+                  // operación no cancelada -> obtenemos la información que precisamos
+                  string? identificador = ventana.identificador;
+                  string? nombre = ventana.nombre;
+                  string? destino = ventana.destino;
+                  string? descripcion = ventana.descripcion;
+                  ficherosCopiaSeguridad = ventana.ficheros;
+                  // creamos la transacción para almacenarla
+                  gestorBD.crearTransaccion();
                   if (gestorBD.resultado)
                   {
-                     gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(identificador);
+                     // se ha podido crear la transacción -> actualizaremos la información
+                     gestorBD.actualizarCopiaSeguridad(identificador, nombre, destino, descripcion);
                      if (gestorBD.resultado)
                      {
-                        gestorBD.almacenarListaFicherosYDirectoriosSeleccionadosDeUnaCopiaDeSeguridad(identificador, ficherosCopiaSeguridad);
+                        gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(identificador);
                         if (gestorBD.resultado)
                         {
-                           gestorBD.aceptarTransaccion();
+                           gestorBD.almacenarListaFicherosYDirectoriosSeleccionadosDeUnaCopiaDeSeguridad(identificador, ficherosCopiaSeguridad);
                            if (gestorBD.resultado)
                            {
-                              System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
-                              temporizador.Interval = 1000;
-                              temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
-                              temporizador.Start();
+                              gestorBD.aceptarTransaccion();
+                              if (gestorBD.resultado)
+                              {
+                                 System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
+                                 temporizador.Interval = 1000;
+                                 temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
+                                 temporizador.Start();
+                              }
+                              else
+                                 MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                            }
                            else
-                              MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           {
+                              MessageBox.Show(gestorBD.mensajeError, "ERROR AL ALMACENAR LOS FICHEROS Y DIRECTORIOS SELECCIONADOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                              gestorBD.anularTransaccion();
+                              if (!gestorBD.resultado)
+                                 MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           }
                         }
                         else
                         {
-                           MessageBox.Show(gestorBD.mensajeError, "ERROR AL ALMACENAR LOS FICHEROS Y DIRECTORIOS SELECCIONADOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LOS FICHEROS Y DIRECTORIOS ANTIGUOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                            gestorBD.anularTransaccion();
                            if (!gestorBD.resultado)
                               MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -677,18 +721,11 @@ namespace GeneradorBackups
                      }
                      else
                      {
-                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LOS FICHEROS Y DIRECTORIOS ANTIGUOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL MODIFICAR COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         gestorBD.anularTransaccion();
                         if (!gestorBD.resultado)
                            MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                      }
-                  }
-                  else
-                  {
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL MODIFICAR COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                     gestorBD.anularTransaccion();
-                     if (!gestorBD.resultado)
-                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                   }
                }
             }
@@ -808,29 +845,32 @@ namespace GeneradorBackups
       // se ha pulsado el botón "Editar copia de seguridad"
       private void buttonEditarCS_Click(object sender, EventArgs e)
       {
-         FormEditarAgregarCopiaSeguridad ventana = new FormEditarAgregarCopiaSeguridad();
-         ventana.ventanaPadre = this;
-         ventana.modoEdicion = modoEdicion.EditarCS;
-         ventana.gestorBD = gestorBD;
-         string? identificador, nombre, descripcion, destino;
-         bool seleccionada;
-         if (obtenerDatosCSSeleccionada(out identificador, out nombre, out descripcion, out destino, out seleccionada))
+         if (gestorBD != null)
          {
-            if (!string.IsNullOrEmpty(identificador))
+            FormEditarAgregarCopiaSeguridad ventana = new FormEditarAgregarCopiaSeguridad();
+            ventana.ventanaPadre = this;
+            ventana.modoEdicion = modoEdicion.EditarCS;
+            ventana.gestorBD = gestorBD;
+            string? identificador, nombre, descripcion, destino;
+            bool seleccionada;
+            if (obtenerDatosCSSeleccionada(out identificador, out nombre, out descripcion, out destino, out seleccionada))
             {
-               ficherosCopiaSeguridad = gestorBD.obtenerListaFicherosYDirectoriosSeleccionados(identificador);
-               if (gestorBD.resultado)
+               if (!string.IsNullOrEmpty(identificador))
                {
-                  ventana.ficheros = ficherosCopiaSeguridad;
-                  ventana.identificador = identificador;
-                  ventana.nombre = nombre;
-                  ventana.descripcion = descripcion;
-                  ventana.destino = destino;
-                  ventana.FormClosed += manejadorCierreVentanaModificarCopiaSeguridad;
-                  ventana.Show();
+                  ficherosCopiaSeguridad = gestorBD.obtenerListaFicherosYDirectoriosSeleccionados(identificador);
+                  if (gestorBD.resultado)
+                  {
+                     ventana.ficheros = ficherosCopiaSeguridad;
+                     ventana.identificador = identificador;
+                     ventana.nombre = nombre;
+                     ventana.descripcion = descripcion;
+                     ventana.destino = destino;
+                     ventana.FormClosed += manejadorCierreVentanaModificarCopiaSeguridad;
+                     ventana.Show();
+                  }
+                  else
+                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS FICHEROS Y DIRECTORIOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                }
-               else
-                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS FICHEROS Y DIRECTORIOS DE LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
          }
       }
@@ -847,145 +887,154 @@ namespace GeneradorBackups
       // se ha cambiado el valor de una celda, esto es, 
       private void dgvDatosCS_CellValueChanged(object sender, DataGridViewCellEventArgs e)
       {
-         if (!bloquearEdicionCeldaSeleccionada)
+         if (gestorBD != null)
          {
-            int fila = e.RowIndex,
-                columna = e.ColumnIndex;
-            try
+            if (!bloquearEdicionCeldaSeleccionada)
             {
-               if (columna == kColSeleccionada)
+               int fila = e.RowIndex,
+                   columna = e.ColumnIndex;
+               try
                {
-                  string? idCS = (dgvDatosCS.Rows[fila].Cells[kColIdentificador].Value != null) ? dgvDatosCS.Rows[fila].Cells[kColIdentificador].Value.ToString() : null;
-                  if (idCS != null)
+                  if (columna == kColSeleccionada)
                   {
-                     bool valor = (bool)dgvDatosCS.Rows[fila].Cells[columna].Value;
-                     gestorBD.actualizarCampoSeleccionadaEnDatosCS(idCS, valor);
-                     if (gestorBD.resultado)
+                     string? idCS = (dgvDatosCS.Rows[fila].Cells[kColIdentificador].Value != null) ? dgvDatosCS.Rows[fila].Cells[kColIdentificador].Value.ToString() : null;
+                     if (idCS != null)
                      {
-                        establecerEtiquetaBotonActivarDesactivarBitSeleccion();
-                        activarBotonEjecutar();
+                        bool valor = (bool)dgvDatosCS.Rows[fila].Cells[columna].Value;
+                        gestorBD.actualizarCampoSeleccionadaEnDatosCS(idCS, valor);
+                        if (gestorBD.resultado)
+                        {
+                           establecerEtiquetaBotonActivarDesactivarBitSeleccion();
+                           activarBotonEjecutar();
+                        }
+                        else
+                           MessageBox.Show(gestorBD.mensajeError, "ERROR AL ACTUALIZAR FLAG SELECCIONADA EN BASE DE DATOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                      }
-                     else
-                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL ACTUALIZAR FLAG SELECCIONADA EN BASE DE DATOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                   }
                }
+               catch (ArgumentOutOfRangeException)
+               {
+                  return;
+               }
             }
-            catch (ArgumentOutOfRangeException)
-            {
-               return;
-            }
+            else
+               bloquearEdicionCeldaSeleccionada = false;
          }
-         else
-            bloquearEdicionCeldaSeleccionada = false;
       }
 
       // se ha pulsado el botón "Activar/Desactivar seleccionada"
 
       private void buttonActivarDesactivarSeleccionada_Click(object sender, EventArgs e)
       {
-         // activamos o desactivamos todas las celdas que aparecen en el datagrid
-         for(int i = 0;i < dgvDatosCS.Rows.Count; i++)
+         if (gestorBD != null)
          {
-            // antes de nada, crearemos una transacción
-            if (i == 0)
+            // activamos o desactivamos todas las celdas que aparecen en el datagrid
+            for (int i = 0; i < dgvDatosCS.Rows.Count; i++)
             {
-               gestorBD.crearTransaccion();
-               if (!gestorBD.resultado)
+               // antes de nada, crearemos una transacción
+               if (i == 0)
                {
-                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL CREAR LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  return;
-               }
-            }
-            // en primer lugar, activaremos o desactivaremos la celda de turno
-            bloquearEdicionCeldaSeleccionada = true;
-            bool valorAntiguo = (bool)dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value;
-            dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value = activarDesactivarBitSeleccion;
-            bloquearEdicionCeldaSeleccionada = false;
-            // actualizamos la base de datos
-            string? idCS = (dgvDatosCS.Rows[i].Cells[kColIdentificador].Value != null) ? dgvDatosCS.Rows[i].Cells[kColIdentificador].Value.ToString() : null;
-            if (idCS != null)
-            {
-               gestorBD.actualizarCampoSeleccionadaEnDatosCS(idCS, activarDesactivarBitSeleccion);
-               if (!gestorBD.resultado)
-               {
-                  bloquearEdicionCeldaSeleccionada = true;
-                  dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value = valorAntiguo;
-                  bloquearEdicionCeldaSeleccionada = false;
-                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL ACTUALIZAR FLAG SELECCIONADA EN BASE DE DATOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  gestorBD.anularTransaccion();
+                  gestorBD.crearTransaccion();
                   if (!gestorBD.resultado)
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  return;
+                  {
+                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL CREAR LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     return;
+                  }
+               }
+               // en primer lugar, activaremos o desactivaremos la celda de turno
+               bloquearEdicionCeldaSeleccionada = true;
+               bool valorAntiguo = (bool)dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value;
+               dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value = activarDesactivarBitSeleccion;
+               bloquearEdicionCeldaSeleccionada = false;
+               // actualizamos la base de datos
+               string? idCS = (dgvDatosCS.Rows[i].Cells[kColIdentificador].Value != null) ? dgvDatosCS.Rows[i].Cells[kColIdentificador].Value.ToString() : null;
+               if (idCS != null)
+               {
+                  gestorBD.actualizarCampoSeleccionadaEnDatosCS(idCS, activarDesactivarBitSeleccion);
+                  if (!gestorBD.resultado)
+                  {
+                     bloquearEdicionCeldaSeleccionada = true;
+                     dgvDatosCS.Rows[i].Cells[kColSeleccionada].Value = valorAntiguo;
+                     bloquearEdicionCeldaSeleccionada = false;
+                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL ACTUALIZAR FLAG SELECCIONADA EN BASE DE DATOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     gestorBD.anularTransaccion();
+                     if (!gestorBD.resultado)
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     return;
+                  }
                }
             }
+            // finalmente, daremos por válida la transacción
+            gestorBD.aceptarTransaccion();
+            if (gestorBD.resultado)
+            {
+               establecerEtiquetaBotonActivarDesactivarBitSeleccion();
+               activarBotonEjecutar();
+            }
+            else
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
          }
-         // finalmente, daremos por válida la transacción
-         gestorBD.aceptarTransaccion();
-         if (gestorBD.resultado)
-         {
-            establecerEtiquetaBotonActivarDesactivarBitSeleccion();
-            activarBotonEjecutar();
-         }
-         else
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
       }
 
       // se ha pulsado el botón "Eliminar copia de seguridad"
       private void buttonEliminarCopiasSeguridad_Click(object sender, EventArgs e)
       {
-         // en primer lugar, borraremos lo seleccionado de la base de datos
-         bool creadaTransaccion = false;
-         for(int i=0; i < dgvDatosCS.SelectedRows.Count; i++)
+         if (gestorBD != null)
          {
-            // obtenemos el pertinente identificador de la copia de seguridad
-            string? idCS = (dgvDatosCS.SelectedRows[i].Cells[kColIdentificador].Value != null) ? dgvDatosCS.SelectedRows[i].Cells[kColIdentificador].Value.ToString() : null;
-            if (!string.IsNullOrEmpty(idCS))
+            // en primer lugar, borraremos lo seleccionado de la base de datos
+            bool creadaTransaccion = false;
+            for (int i = 0; i < dgvDatosCS.SelectedRows.Count; i++)
             {
-               if (i==0)
+               // obtenemos el pertinente identificador de la copia de seguridad
+               string? idCS = (dgvDatosCS.SelectedRows[i].Cells[kColIdentificador].Value != null) ? dgvDatosCS.SelectedRows[i].Cells[kColIdentificador].Value.ToString() : null;
+               if (!string.IsNullOrEmpty(idCS))
                {
-                  gestorBD.crearTransaccion();
+                  if (i == 0)
+                  {
+                     gestorBD.crearTransaccion();
+                     if (!gestorBD.resultado)
+                     {
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL CREAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        return;
+                     }
+                     creadaTransaccion = true;
+                  }
+                  // borramos la lista de ficheros y carpetas seleccionadas de la copia de seguridad
+                  gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(idCS);
                   if (!gestorBD.resultado)
                   {
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL CREAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL ELIMINAR FICHEROS Y DIRECTORIOS SELECCIONADOS", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     gestorBD.anularTransaccion();
+                     if (!gestorBD.resultado)
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                      return;
                   }
-                  creadaTransaccion = true;
-               }
-               // borramos la lista de ficheros y carpetas seleccionadas de la copia de seguridad
-               gestorBD.borrarFicherosYDirectoriosSeleccionadosDeCS(idCS);
-               if (!gestorBD.resultado)
-               {
-                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL ELIMINAR FICHEROS Y DIRECTORIOS SELECCIONADOS",MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  gestorBD.anularTransaccion();
+                  gestorBD.borrarCopiaSeguridad(idCS);
                   if (!gestorBD.resultado)
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK,MessageBoxIcon.Exclamation);
-                  return;
-               }
-               gestorBD.borrarCopiaSeguridad(idCS);
-               if (!gestorBD.resultado)
-               {
-                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  gestorBD.anularTransaccion();
-                  if (!gestorBD.resultado)
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  return;
+                  {
+                     MessageBox.Show(gestorBD.mensajeError, "ERROR AL BORRAR LA COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     gestorBD.anularTransaccion();
+                     if (!gestorBD.resultado)
+                        MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     return;
+                  }
                }
             }
-         }
-         if (creadaTransaccion)
-         {
-            gestorBD.aceptarTransaccion();
-            if (gestorBD.resultado)
+            if (creadaTransaccion)
             {
-               System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
-               temporizador.Interval = 1000;
-               temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
-               temporizador.Start();
-            }
-            else
-               MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return;
+               gestorBD.aceptarTransaccion();
+               if (gestorBD.resultado)
+               {
+                  System.Windows.Forms.Timer temporizador = new System.Windows.Forms.Timer();
+                  temporizador.Interval = 1000;
+                  temporizador.Tick += manejadorTemporizadorActualizacionDatagrid;
+                  temporizador.Start();
+               }
+               else
+                  MessageBox.Show(gestorBD.mensajeError, "ERROR AL DAR POR VÁLIDA LA TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return;
 
+            }
          }
       }
 

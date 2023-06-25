@@ -59,5 +59,50 @@ namespace GeneradorBackups.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a GeneradorBackups.
+        /// </summary>
+        public static string AssemblyName {
+            get {
+                return ResourceManager.GetString("AssemblyName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a Paco Arques Soria.
+        /// </summary>
+        public static string Authors {
+            get {
+                return ResourceManager.GetString("Authors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a hdd_win_16634.ico.
+        /// </summary>
+        public static string Icon {
+            get {
+                return ResourceManager.GetString("Icon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a GeneradorBackups.
+        /// </summary>
+        public static string MSBuildProjectName {
+            get {
+                return ResourceManager.GetString("MSBuildProjectName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a 1.1.0.0.
+        /// </summary>
+        public static string VersionPrefix {
+            get {
+                return ResourceManager.GetString("VersionPrefix", resourceCulture);
+            }
+        }
     }
 }

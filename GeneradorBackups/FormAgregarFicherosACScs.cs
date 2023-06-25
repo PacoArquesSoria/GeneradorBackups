@@ -227,17 +227,15 @@ namespace GeneradorBackups
       private void actualizarListaFicherosYDirectoriosSeleccionados()
       {
          bool nuevaLista = (ficherosSeleccionados == null || (ficherosSeleccionados != null && ficherosSeleccionados.Count == 0));
+         if (ficherosSeleccionados == null)
+            ficherosSeleccionados = new List<string>();
          for (int i = 0; i < clbFicherosYDirectorios.Items.Count; i++)
          {
             string? nombreAbsoluto = directorio + "\\" + clbFicherosYDirectorios.Items[i].ToString();
             if (clbFicherosYDirectorios.GetItemChecked(i))
             {
                if (nuevaLista)
-               {
-                  if (ficherosSeleccionados == null)
-                     ficherosSeleccionados = new List<string>();
                   ficherosSeleccionados.Add(nombreAbsoluto);
-               }
                else
                {
                   if (!ficherosSeleccionados.Contains(nombreAbsoluto))
@@ -275,19 +273,24 @@ namespace GeneradorBackups
       // función que inicializa el tamaño del textBox del directorio. Devuelve un booleano indicando si la operación se ha efectuado correctamente (true) o no (false).
       private bool inicializarTextBoxDirectorio()
       {
-         int tamDirectorio = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaFicheros.nombreTabla, sDatosTablaFicheros.colNombreAbsoluto);
-         if (gestorBD.resultado)
+         if (gestorBD != null)
          {
-            // se ha leído correctamente el tamaño de la columna de la tabla -> estableceremos la máxima longitud del textBox y devolveremos true al procedimiento invocante
-            textBoxDirectorio.MaxLength = tamDirectorio;
-            return true;
+            int tamDirectorio = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaFicheros.nombreTabla, sDatosTablaFicheros.colNombreAbsoluto);
+            if (gestorBD.resultado)
+            {
+               // se ha leído correctamente el tamaño de la columna de la tabla -> estableceremos la máxima longitud del textBox y devolveremos true al procedimiento invocante
+               textBoxDirectorio.MaxLength = tamDirectorio;
+               return true;
+            }
+            else
+            {
+               // no se ha leído correctamente el tamaño de la columna de la tabla -> mostraremos un cuadro de diálogo indicándolo y devolveremos false al procedimiento invocante
+               MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+               return false;
+            }
          }
          else
-         {
-            // no se ha leído correctamente el tamaño de la columna de la tabla -> mostraremos un cuadro de diálogo indicándolo y devolveremos false al procedimiento invocante
-            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             return false;
-         }
       }
 
       /****** MANEJADORES DE LA VENTANA ******/

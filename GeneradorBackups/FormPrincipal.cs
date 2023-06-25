@@ -30,12 +30,23 @@ namespace GeneradorBackups
       private bool activarOpcionesProgramas()
       {
          bool onoff = (datosConfiguracion == null) ? false : true;
-         rbConfiguracionProgramaBackup.Enabled = onoff;
-         rbConfiguracionAplicacion.Enabled = true;
-         rbCopiaSeguridad.Enabled = onoff;
-         if (!onoff)
-            rbConfiguracionAplicacion.Checked = true;
-         return onoff;
+         if (rbConfiguracionProgramaBackup != null)
+            rbConfiguracionProgramaBackup.Enabled = onoff;
+         else
+            return false;
+         if (rbConfiguracionAplicacion != null)
+         {
+            rbConfiguracionAplicacion.Enabled = true;
+            if (rbCopiaSeguridad != null)
+               rbCopiaSeguridad.Enabled = onoff;
+            else
+               return false;
+            if (!onoff)
+               rbConfiguracionAplicacion.Checked = true;
+            return onoff;
+         }
+         else
+            return false;
       }
 
       // función que comprueba si existe la base de datos de la aplicación.
@@ -464,7 +475,7 @@ namespace GeneradorBackups
          this.Controls.Add(this.buttonAcercaDe);
          this.Controls.Add(this.groupBoxOpcionesDisponibles);
          this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-         this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+         this.Icon = ((System.Drawing.Icon)resources.GetObject("$this.Icon"));
          this.MaximizeBox = false;
          this.Name = "FormPrincipal";
          this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -510,63 +521,69 @@ namespace GeneradorBackups
       private void FormPrincipal_Shown(object sender, EventArgs e)
       {
          // establecemos la opción por defecto a Copia de Seguridad
-         rbCopiaSeguridad.Checked = true;
-         gestorFC = new ClassGestionFicheroConfiguracion();
-         if (gestorFC.resultado)
+         if (rbCopiaSeguridad != null)
          {
-            datosConfiguracion = gestorFC.leerFicheroConfiguracion();
-            if (gestorFC.resultado)
+            rbCopiaSeguridad.Checked = true;
+            gestorFC = new ClassGestionFicheroConfiguracion();
+            if (gestorFC != null)
             {
-               if (datosConfiguracion != null)
+               if (gestorFC.resultado)
                {
-                  gestorBD = new ClassGestorBD(datosConfiguracion);
-                  if (gestorBD.resultado)
+                  datosConfiguracion = gestorFC.leerFicheroConfiguracion();
+                  if (gestorFC.resultado)
                   {
-                     gestorBD.abrirConexion();
-                     if (gestorBD.resultado)
+                     if (datosConfiguracion != null)
                      {
-                        if (activarOpcionesProgramas())
+                        gestorBD = new ClassGestorBD(datosConfiguracion);
+                        if (gestorBD.resultado)
                         {
-                           comprobarExistenciaBDAplicacion();
                            gestorBD.abrirConexion();
-                           if (!gestorBD.resultado)
+                           if (gestorBD.resultado)
                            {
-                              MessageBox.Show(gestorBD.mensajeError, "ERROR AL ABRIR CONEXIÓN CON LA BBDD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                              Close();
-                              return;
+                              if (activarOpcionesProgramas())
+                              {
+                                 comprobarExistenciaBDAplicacion();
+                                 gestorBD.abrirConexion();
+                                 if (!gestorBD.resultado)
+                                 {
+                                    MessageBox.Show(gestorBD.mensajeError, "ERROR AL ABRIR CONEXIÓN CON LA BBDD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                                    Close();
+                                    return;
+                                 }
+                                 if (!verificaYCreaTablasBD())
+                                 {
+                                    Close();
+                                    return;
+                                 }
+                              }
                            }
-                           if (!verificaYCreaTablasBD())
+                           else
                            {
+                              MessageBox.Show(gestorBD.mensajeError, "ERROR DE CONEXIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                               Close();
-                              return;
                            }
+                        }
+                        else
+                        {
+                           MessageBox.Show(gestorBD.mensajeError, "ERROR DE CONEXIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                           Close();
                         }
                      }
                      else
-                     {
-                        MessageBox.Show(gestorBD.mensajeError, "ERROR DE CONEXIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                        Close();
-                     }
+                        activarOpcionesProgramas();
                   }
                   else
                   {
-                     MessageBox.Show(gestorBD.mensajeError, "ERROR DE CONEXIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                     MessageBox.Show(gestorFC.mensajeError, "ERROR AL LEER FICHERO DE CONFIGURACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                      Close();
                   }
                }
                else
-                  activarOpcionesProgramas();
+               {
+                  MessageBox.Show(gestorFC.mensajeError, "ERROR AL CREAR EL GESTOR DEL FICHERO DE CONFIGURACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                  Close();
+               }
             }
-            else
-            {
-               MessageBox.Show(gestorFC.mensajeError, "ERROR AL LEER FICHERO DE CONFIGURACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-               Close();
-            }
-         }
-         else
-         {
-            MessageBox.Show(gestorFC.mensajeError, "ERROR AL CREAR EL GESTOR DEL FICHERO DE CONFIGURACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-            Close();
          }
       }
 
@@ -579,31 +596,34 @@ namespace GeneradorBackups
       // se ha pulsado el botón Ejecutar
       private void buttonEjecutar_Click(object sender, EventArgs e)
       {
-         // comprobamos la opción seleccionada
-         if (rbConfiguracionProgramaBackup.Checked)
+         if (rbConfiguracionProgramaBackup != null && rbCopiaSeguridad != null)
          {
-            FormConfiguracionProgramaBackup ventana = new FormConfiguracionProgramaBackup();
-            ventana.ventanaPrincipal = this;
-            ventana.gestorBD = gestorBD;
-            ventana.Show();
+            // comprobamos la opción seleccionada
+            if (rbConfiguracionProgramaBackup.Checked)
+            {
+               FormConfiguracionProgramaBackup ventana = new FormConfiguracionProgramaBackup();
+               ventana.ventanaPrincipal = this;
+               ventana.gestorBD = gestorBD;
+               ventana.Show();
+            }
+            else if (rbConfiguracionAplicacion.Checked)
+            {
+               FormConfiguracionAplicacion ventana = new FormConfiguracionAplicacion();
+               ventana.ventanaPrincipal = this;
+               ventana.datosConfiguracion = datosConfiguracion;
+               ventana.FormClosed += manejadorCierreVentana_OpcionesAplicacion;
+               ventana.Show();
+            }
+            else if (rbCopiaSeguridad.Checked)
+            {
+               FormCopiaSeguridad ventana = new FormCopiaSeguridad();
+               ventana.ventanaPrincipal = this;
+               ventana.gestorBD = gestorBD;
+               ventana.Show();
+            }
+            else
+               MessageBox.Show("Opción desconocida", "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
          }
-         else if (rbConfiguracionAplicacion.Checked)
-         {
-            FormConfiguracionAplicacion ventana = new FormConfiguracionAplicacion();
-            ventana.ventanaPrincipal = this;
-            ventana.datosConfiguracion = datosConfiguracion;
-            ventana.FormClosed += manejadorCierreVentana_OpcionesAplicacion;
-            ventana.Show();
-         }
-         else if (rbCopiaSeguridad.Checked)
-         {
-            FormCopiaSeguridad ventana = new FormCopiaSeguridad();
-            ventana.ventanaPrincipal = this;
-            ventana.gestorBD = gestorBD;
-            ventana.Show();
-         }
-         else
-            MessageBox.Show("Opción desconocida", "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
       }
    }
 }
