@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ABI.System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -125,37 +126,53 @@ namespace GeneradorBackups
       private void generarContenidoFichero()
       {
          reset();
-         List<string> listaFicherosDirectorios = gestorBD.obtenerListaFicherosYDirectoriosSeleccionados(idCS);
-         if (!gestorBD.resultado)
+         if (idCS != null)
          {
-            resultado = false;
-            mensajeError = "No se ha podido generar el fichero donde se almacenará la lista de ficheros y carpetas que se ejecutarán en la copia de seguridad.\r\n";
-            mensajeError += "Se ha producido el siguiente error:\r\n";
-            mensajeError += gestorBD.mensajeError;
-            return;
-         }
-         try
-         {
-            if (nombreAbsoluto != null)
+            List<string>? listaFicherosDirectorios = gestorBD.obtenerListaFicherosYDirectoriosSeleccionados(idCS);
+            if (!gestorBD.resultado)
             {
-               StreamWriter sw = new StreamWriter(nombreAbsoluto);
-               if (listaFicherosDirectorios != null && listaFicherosDirectorios.Count > 0)
-               {
-                  ficheroVacio = false;
-                  foreach (string fichero in listaFicherosDirectorios)
-                     sw.WriteLine(fichero);
-               }
-               sw.Close();
+               resultado = false;
+               mensajeError = "No se ha podido generar el fichero donde se almacenará la lista de ficheros y carpetas que se ejecutarán en la copia de seguridad.\r\n";
+               mensajeError += "Se ha producido el siguiente error:\r\n";
+               mensajeError += gestorBD.mensajeError;
+               return;
             }
-            else
-               throw new Exception("No se ha establecido el nombre absoluto del fichero con la lista de ficheros y directorios a aplicar en la copia de seguridad.");
+            try
+            {
+               if (listaFicherosDirectorios != null)
+               {
+                  if (nombreAbsoluto != null)
+                  {
+                     StreamWriter sw = new StreamWriter(nombreAbsoluto);
+                     if (listaFicherosDirectorios != null && listaFicherosDirectorios.Count > 0)
+                     {
+                        ficheroVacio = false;
+                        foreach (string fichero in listaFicherosDirectorios)
+                           sw.WriteLine(fichero);
+                     }
+                     sw.Close();
+                  }
+                  else
+                     throw new System.Exception("No se ha establecido el nombre absoluto del fichero con la lista de ficheros y directorios a aplicar en la copia de seguridad.");
+               }
+               else
+                  throw new System.Exception("No está definido la lista de ficheros y directorios a comprimir");
 
-         } catch (Exception excepcion)
+            }
+            catch (System.Exception excepcion)
+            {
+               resultado = false;
+               mensajeError = "No se ha podido generar el fichero donde se almacenará la lista de ficheros y carpetas que se ejecutarán en la copia de seguridad.\r\n";
+               mensajeError += "Se ha producido el siguiente error:\r\n";
+               mensajeError += excepcion.Message;
+            }
+         }
+         else
          {
             resultado = false;
             mensajeError = "No se ha podido generar el fichero donde se almacenará la lista de ficheros y carpetas que se ejecutarán en la copia de seguridad.\r\n";
             mensajeError += "Se ha producido el siguiente error:\r\n";
-            mensajeError += excepcion.Message;
+            mensajeError += "No está definido el identificador de la copia de seguridad.";
          }
       }
    }

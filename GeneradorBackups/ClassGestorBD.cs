@@ -27,6 +27,7 @@ namespace GeneradorBackups
       public const string colEjecutable = "Ejecutable";                                // columna ejecutable
       public const string colOpciones = "Opciones";                                    // columna opciones
       public const string colOpcionListaFicheros = "Opción lista ficheros";            // columna opción lista ficheros
+      public const string colExtensionPorDefecto = "Extensión por defecto";            // columna extensión por defecto
    }
    public struct sDatosTablaDatosCS                                                    // datos de la tabla "Datos CS"
    {
@@ -61,6 +62,7 @@ namespace GeneradorBackups
          public const string ejecutable = "winrar.exe";
          public const string opciones = "a -scf -m5 -ma5 -htb -r -tsm -tsc -tsa";
          public const string opcionListaFicheros = "@";
+         public const string extension = "rar";
       }
 
       /****** VARIABLES DE LA CLASE ******/
@@ -483,6 +485,7 @@ namespace GeneradorBackups
             generadorCrearTabla.annadirColumna(sDatosTablaConfiguracion.colEjecutable, "varchar(1024)", true, false);
             generadorCrearTabla.annadirColumna(sDatosTablaConfiguracion.colOpciones, "varchar(1024)", false, true);
             generadorCrearTabla.annadirColumna(sDatosTablaConfiguracion.colOpcionListaFicheros, "varchar(10)", false, true);
+            generadorCrearTabla.annadirColumna(sDatosTablaConfiguracion.colExtensionPorDefecto, "varchar(255)", false, false);
             generadorCrearTabla.generarSentenciaSQL();
             if (generadorCrearTabla.resultado)
             {
@@ -529,6 +532,7 @@ namespace GeneradorBackups
             generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colEjecutable, ClassDataBase.prepararCadenaSentenciaSQL(sValoresPorDefectoTablaConfiguracion.ejecutable));
             generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colOpciones, ClassDataBase.prepararCadenaSentenciaSQL(sValoresPorDefectoTablaConfiguracion.opciones));
             generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colOpcionListaFicheros, ClassDataBase.prepararCadenaSentenciaSQL(sValoresPorDefectoTablaConfiguracion.opcionListaFicheros));
+            generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colExtensionPorDefecto, ClassDataBase.prepararCadenaSentenciaSQL(sValoresPorDefectoTablaConfiguracion.extension));
             generadorInsert.generarSentenciaSQL();
             if (!generadorInsert.resultado)
             {
@@ -892,6 +896,7 @@ namespace GeneradorBackups
             generadorSelect.agregarExpresion(generadorSelect.prepararNombre(sDatosTablaConfiguracion.colEjecutable));
             generadorSelect.agregarExpresion(generadorSelect.prepararNombre(sDatosTablaConfiguracion.colOpciones));
             generadorSelect.agregarExpresion(generadorSelect.prepararNombre(sDatosTablaConfiguracion.colOpcionListaFicheros));
+            generadorSelect.agregarExpresion(generadorSelect.prepararNombre(sDatosTablaConfiguracion.colExtensionPorDefecto));
             generadorSelect.generarSentenciaSQL();
             if (generadorSelect.resultado)
             {
@@ -907,6 +912,7 @@ namespace GeneradorBackups
                      resultados[sDatosTablaConfiguracion.colEjecutable] = (puntero[sDatosTablaConfiguracion.colEjecutable] != null) ? puntero[sDatosTablaConfiguracion.colEjecutable].ToString() : null;
                      resultados[sDatosTablaConfiguracion.colOpciones] = (puntero[sDatosTablaConfiguracion.colOpciones] != null) ? puntero[sDatosTablaConfiguracion.colOpciones].ToString() : null;
                      resultados[sDatosTablaConfiguracion.colOpcionListaFicheros] = (puntero[sDatosTablaConfiguracion.colOpcionListaFicheros] != null) ? puntero[sDatosTablaConfiguracion.colOpcionListaFicheros].ToString() : null;
+                     resultados[sDatosTablaConfiguracion.colExtensionPorDefecto] = (puntero[sDatosTablaConfiguracion.colExtensionPorDefecto] != null) ? puntero[sDatosTablaConfiguracion.colExtensionPorDefecto].ToString() : null;
                   }
                   puntero.Close();
                   return resultados;
@@ -939,7 +945,7 @@ namespace GeneradorBackups
       }
 
       // función que almacena los datos de configuración de la aplicación de la copia de seguridad en la base de datos
-      public void almacenarDatosConfiguracionProgramaCopiaSeguridad(string ejecutable, string opciones, string? opcionListaFicheros)
+      public void almacenarDatosConfiguracionProgramaCopiaSeguridad(string ejecutable, string opciones, string? opcionListaFicheros, string extensión)
       {
          if (baseDatos != null)
          {
@@ -982,6 +988,7 @@ namespace GeneradorBackups
             generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colOpciones, ClassDataBase.prepararCadenaSentenciaSQL(opciones));
             if (!string.IsNullOrEmpty(opcionListaFicheros))
                generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colOpcionListaFicheros, ClassDataBase.prepararCadenaSentenciaSQL(opcionListaFicheros));
+            generadorInsert.annadirCampoValor(sDatosTablaConfiguracion.colExtensionPorDefecto, ClassDataBase.prepararCadenaSentenciaSQL(extensión));
             generadorInsert.generarSentenciaSQL();
             if (!generadorInsert.resultado)
             {

@@ -9,14 +9,22 @@
     <PlatformTarget>x64</PlatformTarget>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>InstaladorGeneradorBackups</Title>
-    <Version>$(VersionPrefix)</Version>
+    <Version>1.1.0</Version>
     <Description>Programa que genera copias de seguridad.</Description>
-    <Copyright>© 2023 Paco Arques Soria</Copyright>
+    <Copyright>© 2022, 2023 Paco Arques Soria</Copyright>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
     <IncludeSymbols>True</IncludeSymbols>
     <Authors>$(AssemblyName)</Authors>
     <ApplicationIcon>hdd_win_16634.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>6</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningLevel>6</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,8 +15,8 @@ namespace GeneradorBackups
    {
       /****** VARIABLES DE LA CLASE ******/
       /***********************************/
-      Dictionary<string, string?>? datosConfiguracion;                                                         // datos de configuración
-      string? directorio;                                                                                      // directorio de trabajo
+      private Dictionary<string, string?>? datosConfiguracion;                                                         // datos de configuración
+      private string? directorio;                                                                                      // directorio de trabajo
 
       /****** PROPIEDADES DE LA VENTANA ******/
       /***************************************/
@@ -46,31 +46,38 @@ namespace GeneradorBackups
       /****** MÉTODOS DE LA VENTANA ******/
       /***********************************/
       // función que obtiene los tamaños de los textboxes de la ventana
-      private (int tamEjecutable, int tamOpciones, int tamOpcionListaFicheros) obtenerTamannoTextBoxes()
+      private (int tamEjecutable, int tamOpciones, int tamOpcionListaFicheros, int tamExtensión) obtenerTamannoTextBoxes()
       {
-         int tamEjecutable, tamOpciones, tamOpcionListaFicheros;
+         int tamEjecutable, tamOpciones, tamOpcionListaFicheros, tamExtensión;
          // obtenemos el tamaño máximo del nombre del ejecutable
          tamEjecutable = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaConfiguracion.nombreTabla, sDatosTablaConfiguracion.colEjecutable);
          if (!gestorBD.resultado)
          {
             MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return (-1, -1, -1);
+            return (-1, -1, -1, -1);
          }
          // obtenemos el tamaño máximo de las opciones del ejecutable
          tamOpciones = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaConfiguracion.nombreTabla, sDatosTablaConfiguracion.colOpciones);
          if (!gestorBD.resultado)
          {
             MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return (-1, -1, -1);
+            return (-1, -1, -1, -1);
          }
          // obtenemos el tamaño máximo de las opciones para la lista de ficheros
          tamOpcionListaFicheros = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaConfiguracion.nombreTabla, sDatosTablaConfiguracion.colOpcionListaFicheros);
          if (!gestorBD.resultado)
          {
             MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            return (-1, -1, -1);
+            return (-1, -1, -1, -1);
          }
-         return (tamOpcionListaFicheros, tamOpciones, tamOpcionListaFicheros);
+         // obtenemos el tamaño máximo de la opción para la extensión por defecto
+         tamExtensión = gestorBD.obtenerTamannoColumnaTabla(sDatosTablaConfiguracion.nombreTabla, sDatosTablaConfiguracion.colExtensionPorDefecto);
+         if (!gestorBD.resultado)
+         {
+            MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER EL TAMAÑO DE LA COLUMNA DE LA TABLA", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            return (-1, -1, -1, -1);
+         }
+         return (tamOpcionListaFicheros, tamOpciones, tamOpcionListaFicheros, tamExtensión);
       }
 
       // función que inicializa el selector de ficheros y la variable donde se almacenará el directorio raíz. Devuelve true si se ha inicializado correctamente y false, en
@@ -93,15 +100,16 @@ namespace GeneradorBackups
       // función que inicializa los textboxes de la ventana. Devuelve true si se han inicializado correctamente y false en caso contrario.
       private bool inicializarTextBoxes()
       {
-         int tamEjecutable, tamOpciones, tamOpcionListaFicheros;
-         (tamEjecutable, tamOpciones, tamOpcionListaFicheros) = obtenerTamannoTextBoxes();
-         if (tamEjecutable == -1 && tamOpciones == -1 && tamOpcionListaFicheros == -1)
+         int tamEjecutable, tamOpciones, tamOpcionListaFicheros, tamExtensión;
+         (tamEjecutable, tamOpciones, tamOpcionListaFicheros, tamExtensión) = obtenerTamannoTextBoxes();
+         if (tamEjecutable == -1 && tamOpciones == -1 && tamOpcionListaFicheros == -1 && tamExtensión == -1)
             return false;
          else
          {
             textBoxNombreEjecutable.MaxLength = tamEjecutable;
             textBoxOpciones.MaxLength = tamOpciones;
             textBoxOpcionListaFicheros.MaxLength = tamOpcionListaFicheros;
+            textBoxExtensiónPorDefecto.MaxLength = tamExtensión;
             return true;
          }
       }
@@ -117,6 +125,7 @@ namespace GeneradorBackups
                textBoxNombreEjecutable.Text = datosConfiguracion[sDatosTablaConfiguracion.colEjecutable];
                textBoxOpciones.Text = datosConfiguracion[sDatosTablaConfiguracion.colOpciones];
                textBoxOpcionListaFicheros.Text = datosConfiguracion[sDatosTablaConfiguracion.colOpcionListaFicheros];
+               textBoxExtensiónPorDefecto.Text = datosConfiguracion[sDatosTablaConfiguracion.colExtensionPorDefecto];
                return true;
             }
             else
@@ -124,6 +133,7 @@ namespace GeneradorBackups
                textBoxNombreEjecutable.Text = "";
                textBoxOpciones.Text = "";
                textBoxOpcionListaFicheros.Text = "";
+               textBoxExtensiónPorDefecto.Text = "";
                return true;
             }
          }
@@ -141,15 +151,16 @@ namespace GeneradorBackups
          string ejecutable = textBoxNombreEjecutable.Text;
          string opciones = textBoxOpciones.Text;
          string opcionListaFicheros = textBoxOpcionListaFicheros.Text;
+         string extensión = textBoxExtensiónPorDefecto.Text;
          // comprobamos si los datos de configuración de la base de datos están definidos
          if (datosConfiguracion != null && datosConfiguracion.Count > 0)
          {
-            // comprobamos si están definidos y tienen valores los campos obligatorios (ejecutable y opciones)
-            if (!string.IsNullOrEmpty(ejecutable) && !string.IsNullOrEmpty(opciones))
+            // comprobamos si están definidos y tienen valores los campos obligatorios (ejecutable, opciones y extensión por defecto)
+            if (!string.IsNullOrEmpty(ejecutable) && !string.IsNullOrEmpty(opciones) && !string.IsNullOrEmpty(extensión))
             {
-               // los campos obligatorios (ejecutable y opciones) están definidos -> comprobaremos si son iguales a los que tenemos almacenados
+               // los campos obligatorios (ejecutable, opciones y extensión por defecto) están definidos -> comprobaremos si son iguales a los que tenemos almacenados
                if (ejecutable == datosConfiguracion[sDatosTablaConfiguracion.colEjecutable] && opciones == datosConfiguracion[sDatosTablaConfiguracion.colOpciones] &&
-                   opcionListaFicheros == datosConfiguracion[sDatosTablaConfiguracion.colOpcionListaFicheros])
+                   opcionListaFicheros == datosConfiguracion[sDatosTablaConfiguracion.colOpcionListaFicheros] && extensión == datosConfiguracion[sDatosTablaConfiguracion.colExtensionPorDefecto])
                   // son iguales -> el botón Aceptar no se activará
                   return false;
                else
@@ -168,6 +179,17 @@ namespace GeneradorBackups
       private void activarBotonAceptar()
       {
          buttonAceptar.Enabled = hayQueActivarBotonAceptar();
+      }
+
+      // función que comprueba si se ha introducido el carácter punto que separa el nombre del fichero de su extensión
+      private string extensiónSinPunto(string extensión)
+      {
+         // comprueba si la extensión comienza por punto
+         if (extensión.StartsWith('.'))
+            // si comienza por punto, la elimina
+            return extensión.Substring(1);
+         else
+            return extensión;
       }
 
       /****** MANEJADORES DE LA VENTANA ******/
@@ -225,6 +247,8 @@ namespace GeneradorBackups
          string ejecutable = textBoxNombreEjecutable.Text;                                // ejecutable
          string opciones = textBoxOpciones.Text;                                          // opciones
          string opcionesListaFicheros = textBoxOpcionListaFicheros.Text;                  // opción de lista de ficheros
+         string extensión = extensiónSinPunto(textBoxExtensiónPorDefecto.Text);           // extensión por defecto
+         textBoxExtensiónPorDefecto.Text = extensión;
          // operaciones con la base de datos
          gestorBD.crearTransaccion();                                                     // creamos la transacción
          if (!gestorBD.resultado)
@@ -241,7 +265,7 @@ namespace GeneradorBackups
                MessageBox.Show(gestorBD.mensajeError, "ERROR AL ANULAR TRANSACCIÓN", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             return;
          }
-         gestorBD.almacenarDatosConfiguracionProgramaCopiaSeguridad(ejecutable, opciones, opcionesListaFicheros);
+         gestorBD.almacenarDatosConfiguracionProgramaCopiaSeguridad(ejecutable, opciones, opcionesListaFicheros, extensión);
          if (gestorBD.resultado)
          {
             gestorBD.aceptarTransaccion();
@@ -287,7 +311,7 @@ namespace GeneradorBackups
       }
 
       // se ha pulsado el botón "Valores por defecto"
- 
+
       private void buttonValoresPorDefecto_Click(object sender, EventArgs e)
       {
          textBoxNombreEjecutable.Text = ClassGestorBD.sValoresPorDefectoTablaConfiguracion.ejecutable;

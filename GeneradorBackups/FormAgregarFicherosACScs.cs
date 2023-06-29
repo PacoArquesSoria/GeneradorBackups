@@ -266,6 +266,7 @@ namespace GeneradorBackups
          buttonAplicar.Enabled = onoff;
          labelFicherosYDirectoriosSeleccionados.Enabled = onoff;
          textBoxFicherosDirectoriosSeleccionados.Enabled = onoff;
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Enabled = onoff;
          buttonAceptar.Enabled = onoff;
          buttonCancelar.Enabled = true;
       }
@@ -291,6 +292,42 @@ namespace GeneradorBackups
          }
          else
             return false;
+      }
+
+      // activa o desactiva el botón "Borrar lista de ficheros y directorios seleccionados" dependiendo de si tiene elementos la lista
+      private void activarBotónBorrarListaFicherosYDirectoriosSeleccionados()
+      {
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Enabled = (ficherosSeleccionados != null && ficherosSeleccionados.Count > 0);
+      }
+
+      private void cambiarDirectorioAlSeleccionarOtroNuevo()
+      {
+         // leemos lo que hemos tecleado o hemos puesto empleando el selector de directorios
+         string? nuevoDirectorio = textBoxDirectorio.Text;
+         if (!string.IsNullOrEmpty(nuevoDirectorio))
+         {
+            if (ClassFileSystem.existeDirectorio(nuevoDirectorio))
+            {
+               bool resultado;
+               string mensajeError;
+               if (ClassFileSystem.chdir(nuevoDirectorio, out mensajeError))
+               {
+                  // se ha cambiado al nuevo directorio -> obtendremos el path absoluto del nuevo directorio
+                  directorio = ClassFileSystem.pwd(out resultado, out mensajeError);
+                  if (resultado)
+                  {
+                     inicializarSelectorFicherosYDirectorios();
+                     textBoxDirectorio.Text = directorio;
+                     establecerModoBotonSeleccionarTodoAnularSeleccion();
+                  }
+                  else
+                  {
+                     activarWidgets(false);
+                     MessageBox.Show(mensajeError, "ERROR AL OBTENER EL NOMBRE DE LA CARPETA ACTUAL DE TRABAJO", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                  }
+               }
+            }
+         }
       }
 
       /****** MANEJADORES DE LA VENTANA ******/
@@ -355,6 +392,7 @@ namespace GeneradorBackups
          inicializarListadoFicherosDirectoriosSeleccionados();
          establecerModoBotonSeleccionarTodoAnularSeleccion();
          activarWidgets();
+         activarBotónBorrarListaFicherosYDirectoriosSeleccionados();
       }
 
       // se ha pulsado el botón "Seleccionar todo/Anular selección"
@@ -395,6 +433,7 @@ namespace GeneradorBackups
          {
             case DialogResult.OK:                                                                              // se ha pulsado Ok
                textBoxDirectorio.Text = folderBrowserDialogSelectorDirectorios.SelectedPath;
+               cambiarDirectorioAlSeleccionarOtroNuevo();
                break;
             case DialogResult.Cancel:                                                                          // se ha pulsado Cancelar
                break;
@@ -415,31 +454,18 @@ namespace GeneradorBackups
       // se ha validado el texto del cambio de directorio
       private void textBoxDirectorio_Validated(object sender, EventArgs e)
       {
-         // leemos lo que hemos tecleado o hemos puesto empleando el selector de directorios
-         string? nuevoDirectorio = textBoxDirectorio.Text;
-         if (!string.IsNullOrEmpty(nuevoDirectorio))
+         cambiarDirectorioAlSeleccionarOtroNuevo();
+      }
+
+      // se ha pulsado el botón "Borrar lista de ficheros y directorios seleccionados"
+      private void buttonBorrarListaFicherosYDirectoriosSeleccionados_Click(object sender, EventArgs e)
+      {
+         if (ficherosSeleccionados != null)
          {
-            if (ClassFileSystem.existeDirectorio(nuevoDirectorio))
-            {
-               bool resultado;
-               string mensajeError;
-               if (ClassFileSystem.chdir(nuevoDirectorio, out mensajeError))
-               {
-                  // se ha cambiado al nuevo directorio -> obtendremos el path absoluto del nuevo directorio
-                  directorio = ClassFileSystem.pwd(out resultado, out mensajeError);
-                  if (resultado)
-                  {
-                     inicializarSelectorFicherosYDirectorios();
-                     textBoxDirectorio.Text = directorio;
-                     establecerModoBotonSeleccionarTodoAnularSeleccion();
-                  }
-                  else
-                  {
-                     activarWidgets(false);
-                     MessageBox.Show(mensajeError, "ERROR AL OBTENER EL NOMBRE DE LA CARPETA ACTUAL DE TRABAJO", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                  }
-               }
-            }
+            ficherosSeleccionados.Clear();
+            ficherosSeleccionados = null;
+            inicializarListadoFicherosDirectoriosSeleccionados();
+            activarBotónBorrarListaFicherosYDirectoriosSeleccionados();
          }
       }
    }

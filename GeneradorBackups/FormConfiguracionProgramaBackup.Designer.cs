@@ -39,6 +39,8 @@
          buttonCancelar = new Button();
          openFileDialogSelectorEjecutables = new OpenFileDialog();
          buttonValoresPorDefecto = new Button();
+         labelExtensiónPorDefecto = new Label();
+         textBoxExtensiónPorDefecto = new TextBox();
          SuspendLayout();
          // 
          // labelNombreEjecutable
@@ -104,20 +106,20 @@
          // 
          // buttonAceptar
          // 
-         buttonAceptar.Location = new Point(531, 135);
+         buttonAceptar.Location = new Point(531, 157);
          buttonAceptar.Name = "buttonAceptar";
          buttonAceptar.Size = new Size(75, 23);
-         buttonAceptar.TabIndex = 8;
+         buttonAceptar.TabIndex = 10;
          buttonAceptar.Text = "Aceptar";
          buttonAceptar.UseVisualStyleBackColor = true;
          buttonAceptar.Click += buttonAceptar_Click;
          // 
          // buttonCancelar
          // 
-         buttonCancelar.Location = new Point(621, 135);
+         buttonCancelar.Location = new Point(621, 157);
          buttonCancelar.Name = "buttonCancelar";
          buttonCancelar.Size = new Size(75, 23);
-         buttonCancelar.TabIndex = 9;
+         buttonCancelar.TabIndex = 11;
          buttonCancelar.Text = "Cancelar";
          buttonCancelar.UseVisualStyleBackColor = true;
          buttonCancelar.Click += buttonCancelar_Click;
@@ -128,19 +130,37 @@
          // 
          // buttonValoresPorDefecto
          // 
-         buttonValoresPorDefecto.Location = new Point(35, 135);
+         buttonValoresPorDefecto.Location = new Point(35, 157);
          buttonValoresPorDefecto.Name = "buttonValoresPorDefecto";
          buttonValoresPorDefecto.Size = new Size(142, 23);
-         buttonValoresPorDefecto.TabIndex = 7;
+         buttonValoresPorDefecto.TabIndex = 9;
          buttonValoresPorDefecto.Text = "Valores por defecto";
          buttonValoresPorDefecto.UseVisualStyleBackColor = true;
          buttonValoresPorDefecto.Click += buttonValoresPorDefecto_Click;
+         // 
+         // labelExtensiónPorDefecto
+         // 
+         labelExtensiónPorDefecto.AutoSize = true;
+         labelExtensiónPorDefecto.Location = new Point(35, 125);
+         labelExtensiónPorDefecto.Name = "labelExtensiónPorDefecto";
+         labelExtensiónPorDefecto.Size = new Size(122, 15);
+         labelExtensiónPorDefecto.TabIndex = 7;
+         labelExtensiónPorDefecto.Text = "Extensión por defecto";
+         // 
+         // textBoxExtensiónPorDefecto
+         // 
+         textBoxExtensiónPorDefecto.Location = new Point(168, 122);
+         textBoxExtensiónPorDefecto.Name = "textBoxExtensiónPorDefecto";
+         textBoxExtensiónPorDefecto.Size = new Size(528, 23);
+         textBoxExtensiónPorDefecto.TabIndex = 8;
          // 
          // FormConfiguracionProgramaBackup
          // 
          AutoScaleDimensions = new SizeF(7F, 15F);
          AutoScaleMode = AutoScaleMode.Font;
-         ClientSize = new Size(730, 192);
+         ClientSize = new Size(740, 226);
+         Controls.Add(textBoxExtensiónPorDefecto);
+         Controls.Add(labelExtensiónPorDefecto);
          Controls.Add(buttonValoresPorDefecto);
          Controls.Add(buttonCancelar);
          Controls.Add(buttonAceptar);
@@ -179,5 +199,7 @@
       private Button buttonCancelar;
       private OpenFileDialog openFileDialogSelectorEjecutables;
       private Button buttonValoresPorDefecto;
+      private Label labelExtensiónPorDefecto;
+      private TextBox textBoxExtensiónPorDefecto;
    }
 }

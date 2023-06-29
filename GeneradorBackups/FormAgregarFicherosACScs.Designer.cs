@@ -39,6 +39,7 @@
          buttonCancelar = new Button();
          buttonAplicar = new Button();
          folderBrowserDialogSelectorDirectorios = new FolderBrowserDialog();
+         buttonBorrarListaFicherosYDirectoriosSeleccionados = new Button();
          SuspendLayout();
          // 
          // labelDirectorio
@@ -116,20 +117,20 @@
          // 
          // buttonAceptar
          // 
-         buttonAceptar.Location = new Point(39, 564);
+         buttonAceptar.Location = new Point(37, 612);
          buttonAceptar.Name = "buttonAceptar";
          buttonAceptar.Size = new Size(75, 23);
-         buttonAceptar.TabIndex = 8;
+         buttonAceptar.TabIndex = 9;
          buttonAceptar.Text = "Aceptar";
          buttonAceptar.UseVisualStyleBackColor = true;
          buttonAceptar.Click += buttonAceptar_Click;
          // 
          // buttonCancelar
          // 
-         buttonCancelar.Location = new Point(765, 564);
+         buttonCancelar.Location = new Point(765, 612);
          buttonCancelar.Name = "buttonCancelar";
          buttonCancelar.Size = new Size(75, 23);
-         buttonCancelar.TabIndex = 9;
+         buttonCancelar.TabIndex = 10;
          buttonCancelar.Text = "Cancelar";
          buttonCancelar.UseVisualStyleBackColor = true;
          buttonCancelar.Click += buttonCancelar_Click;
@@ -144,11 +145,22 @@
          buttonAplicar.UseVisualStyleBackColor = true;
          buttonAplicar.Click += buttonAplicar_Click;
          // 
+         // buttonBorrarListaFicherosYDirectoriosSeleccionados
+         // 
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Location = new Point(35, 553);
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Name = "buttonBorrarListaFicherosYDirectoriosSeleccionados";
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Size = new Size(294, 23);
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.TabIndex = 8;
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Text = "Borrar lista de ficheros y directorios seleccionados";
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.UseVisualStyleBackColor = true;
+         buttonBorrarListaFicherosYDirectoriosSeleccionados.Click += buttonBorrarListaFicherosYDirectoriosSeleccionados_Click;
+         // 
          // FormAgregarFicherosACScs
          // 
          AutoScaleDimensions = new SizeF(7F, 15F);
          AutoScaleMode = AutoScaleMode.Font;
-         ClientSize = new Size(874, 622);
+         ClientSize = new Size(874, 671);
+         Controls.Add(buttonBorrarListaFicherosYDirectoriosSeleccionados);
          Controls.Add(buttonAplicar);
          Controls.Add(buttonCancelar);
          Controls.Add(buttonAceptar);
@@ -187,5 +199,6 @@
       private Button buttonCancelar;
       private Button buttonAplicar;
       private FolderBrowserDialog folderBrowserDialogSelectorDirectorios;
+      private Button buttonBorrarListaFicherosYDirectoriosSeleccionados;
    }
 }

@@ -401,7 +401,7 @@ namespace GeneradorBackups
       }
 
       // función que obtiene los datos de la tabla Configuración para ejecutar las copias de seguridad seleccionadas en el pertinente Datagrid.
-      private (string? ejecutable, string? opciones, string? opcionListaFicheros, bool errorLectura) obtenerEjecutableCS()
+      private (string? ejecutable, string? opciones, string? opcionListaFicheros, string extensión, bool errorLectura) obtenerEjecutableCS()
       {
          if (gestorBD != null)
          {
@@ -415,64 +415,68 @@ namespace GeneradorBackups
                      string? ejecutable = datosEjecutable[sDatosTablaConfiguracion.colEjecutable];
                      string? opciones = datosEjecutable[sDatosTablaConfiguracion.colOpciones];
                      string? opcionListaFicheros = datosEjecutable[sDatosTablaConfiguracion.colOpcionListaFicheros];
-                     return (ejecutable, opciones, opcionListaFicheros, false);
+                     string extensión = datosEjecutable[sDatosTablaConfiguracion.colExtensionPorDefecto];
+                     return (ejecutable, opciones, opcionListaFicheros, extensión, false);
                   }
                   else
-                     return (null, null, null, false);
+                     return (null, null, null, "",false);
                }
                catch (ArgumentOutOfRangeException)
                {
                   MessageBox.Show("No se ha podido leer los datos del programa de copia de seguridad.", "ERROR INTERNO DE LA APLICACIÓN", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                  return (null, null, null, true);
+                  return (null, null, null, "", true);
                }
             }
             else
             {
                MessageBox.Show(gestorBD.mensajeError, "ERROR AL OBTENER LOS DATOS DEL PROGRAMA DE COPIA DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Error);
-               return (null, null, null, true);
+               return (null, null, null,"", true);
             }
          }
          else
-            return (null, null, null, true);
+            return (null, null, null, "", true);
       }
 
-      // función que nos dice si el ejecutable es del programa WinRAR o no. Como parámetro se le pasa el nombre del ejecutable. Devuelve un booleano indicándolo.
-      private bool esWinRar(string ejecutable)
+      // función que genera una extensión con un punto delante de la misma. Como parámetro se le pasa la extensión sin punto.
+      private string generarExtensiónConPunto(string extensión)
       {
-         return ejecutable.IndexOf(kWinRAR) != -1;
+         return "." + extensión;
       }
 
-      // función que genera el nombre completo del fichero RAR donde se realizará la copia de seguridad. Como parámetros se le pasan: el nombre del fichero RAR y el nombre
-      // del ejecutable.
-      private string generarNombreFicheroRar(string ficheroRAR, string ejecutable)
+      // función que genera el nombre completo del fichero RAR donde se realizará la copia de seguridad. Como parámetros se le pasan: el nombre del fichero de
+      // copia de seguridad y la extensión.
+      private string generarNombreFicheroCopiaSeguridad(string ficheroCopiaSeguridad, string extensión)
       {
-         // comprobamos si el programa de copia de seguridad es WinRAR
-         if (esWinRar(ejecutable))
-         {
-            // lo es -> comprobaremos si lleva extensión RAR
-            if (ficheroRAR.IndexOf(kExtensionRAR) != -1)
-               // lo lleva -> no hará nada -> devolverá el nombre del fichero RAR sin modificar
-               return ficheroRAR;
-            else
-               // no lo lleva -> lo añadiremos
-               return ficheroRAR + kExtensionRAR;
-         }
+         // lo es -> comprobaremos si lleva extensión RAR
+         string extensiónCompleta = generarExtensiónConPunto(extensión);
+         if (ficheroCopiaSeguridad.IndexOf(extensiónCompleta) != -1)
+            // lo lleva -> no hará nada -> devolverá el nombre del fichero RAR sin modificar
+            return ficheroCopiaSeguridad;
          else
-            // no lo es -> no hará nada -> devolverá el nombre del fichero RAR sin modificar
-            return ficheroRAR;
+            // no lo lleva -> lo añadiremos
+            return ficheroCopiaSeguridad + extensiónCompleta;
       }
 
+      // función que borra la última versión del fichero donde irá la copia de seguridad
+      private bool borrarÚltimaCopiaSeguridad(string? nombre, string? destino, string extensión)
+      {
+         // en primer lugar, añadiremos la extensión RAR si es preciso
+         string nombreFichero = generarNombreFicheroCopiaSeguridad((nombre == null) ? "" : nombre, extensión);
+         // en primer lugar, obtendremos el nombre absoluto del fichero de la copia de seguridad y el nombre absoluto del fichero temporal de la copia de seguridad
+         string nombreAbsoluto = destino + "\\" + nombreFichero;
+         return true;
+      }
 
-      // función que ejecuta la copia de seguridad. Como parámetros se le pasan: el nombre del ejecutable, las opciones, la opción de la lista de ficheros, el identificador
-      // de la copia de seguridad, el nombre de la copia, el destino y el fichero con la lista de ficheros y directorios
-      private bool ejecutarCS(string ejecutable, string opciones, string? opcionListaFicheros, string? idCS, string? nombre, string? destino, string ficheroListaFicheros)
+      // función que ejecuta la copia de seguridad. Como parámetros se le pasan: el nombre del ejecutable, las opciones, la opción de la lista de ficheros, la
+      // extensión y el identificador de la copia de seguridad, el nombre de la copia, el destino y el fichero con la lista de ficheros y directorios
+      private bool ejecutarCS(string ejecutable, string opciones, string? opcionListaFicheros, string extensión, string? idCS, string? nombre, string? destino, string ficheroListaFicheros)
       {
          if (gestorBD == null)
             return false;
          try
          {
             // en primer lugar, añadiremos la extensión RAR si es preciso
-            string nombreFichero = generarNombreFicheroRar((nombre==null) ? "":nombre, ejecutable);
+            string nombreFichero = generarNombreFicheroCopiaSeguridad((nombre==null) ? "":nombre, extensión);
             // en primer lugar, obtendremos el nombre absoluto del fichero de la copia de seguridad y el nombre absoluto del fichero temporal de la copia de seguridad
             string nombreAbsoluto = destino + "\\" + nombreFichero;
             string nombreTemporal = gestorBD.dirTemporal + "\\" + nombreFichero;
@@ -512,17 +516,20 @@ namespace GeneradorBackups
                if (datosCS != null && datosCS.Count > 0)
                {
                   string? ejecutable, opciones, opcionListaFicheros;
+                  string extensión;
                   bool errorLectura;
-                  (ejecutable, opciones, opcionListaFicheros, errorLectura) = obtenerEjecutableCS();
+                  (ejecutable, opciones, opcionListaFicheros, extensión, errorLectura) = obtenerEjecutableCS();
                   if (!errorLectura)
                   {
-                     if (string.IsNullOrEmpty(ejecutable) || string.IsNullOrEmpty(opciones))
+                     if (string.IsNullOrEmpty(ejecutable) || string.IsNullOrEmpty(opciones) || string.IsNullOrEmpty(extensión))
                      {
                         string mError = "No se puede ejecutar la copia de seguridad porque:";
                         if (string.IsNullOrEmpty(ejecutable))
                            mError += "\r\nNo está definido el ejecutable que lo efectuará.";
                         if (string.IsNullOrEmpty(opciones))
                            mError += "\r\nNo están definidas la opciones del ejecutable";
+                        if (string.IsNullOrEmpty(extensión))
+                           mError += "\r\nNo está definida la extensión por defecto del programa de copia de seguridad";
                         MessageBox.Show(mError, "EJECUCIÓN IMPOSIBLE DE LAS COPIAS DE SEGURIDAD", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                         return;
                      }
@@ -538,7 +545,10 @@ namespace GeneradorBackups
                               string? nombre = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colNombre]) ? copiaSeguridad[sDatosTablaDatosCS.colNombre] : null;
                               string? destino = !string.IsNullOrEmpty(copiaSeguridad[sDatosTablaDatosCS.colDestino]) ? copiaSeguridad[sDatosTablaDatosCS.colDestino] : null;
                               string ficheroListaFicheros = string.IsNullOrEmpty(generadorFicheroLista.nombreAbsoluto) ? "" : generadorFicheroLista.nombreAbsoluto;
-                              if (!ejecutarCS(ejecutable, opciones, opcionListaFicheros, idCS, nombre, destino, ficheroListaFicheros))
+                              // borramos el fichero antiguo
+
+                              // generamos la nueva copia de seguridad
+                              if (!ejecutarCS(ejecutable, opciones, opcionListaFicheros, extensión, idCS, nombre, destino, ficheroListaFicheros))
                                  return;
                            }
                            else
